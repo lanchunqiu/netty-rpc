@@ -3,25 +3,30 @@ package com.lancq.netty.rpc.registry;
 import com.lancq.netty.rpc.protocol.InvokerProtocol;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author lancq
  */
+@Slf4j
 public class RegistryHandler extends ChannelInboundHandlerAdapter {
 
+    /**
+     * 保存所有相关的服务类名
+     */
     private List<String> classNames = new ArrayList();
 
-    private Map<String, Object> registryMap = new HashMap();
-
-    //1.根据一个包名将所有符合添加的class都扫描出来
+    /**
+     * 用于保存所有可用的服务
+     */
+    private ConcurrentHashMap<String, Object> registryMap = new ConcurrentHashMap();
 
 
     public RegistryHandler() {
@@ -29,41 +34,6 @@ public class RegistryHandler extends ChannelInboundHandlerAdapter {
         scannerClass("com.lancq.netty.rpc.provider");
         doRegister();
     }
-
-    /**
-     * 完成注册
-     */
-    private void doRegister() {
-        if (classNames.isEmpty()) {return ;}
-
-        for (String className : classNames) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                Class<?> i = clazz.getInterfaces()[0];
-                String serviceName = i.getName();
-                registryMap.put(className, serviceName);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * 扫描指定包下的所有类
-     * @param packageName
-     */
-    private void scannerClass(String packageName) {
-        URL url = this.getClass().getClassLoader().getResource(packageName.replace("\\.", "/"));
-        File classPath = new File(url.getFile());
-        for (File file : classPath.listFiles()) {
-            if (file.isDirectory()) {
-                scannerClass(packageName + "." +file.getName());
-            } else {
-                classNames.add(packageName + "." + file.getName().replace(".class", ""));
-            }
-        }
-    }
-
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Object result = new Object();
@@ -84,5 +54,40 @@ public class RegistryHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
         ctx.close();
+    }
+
+    /**
+     * 扫描指定包下的所有类
+     * @param packageName
+     */
+    private void scannerClass(String packageName) {
+        System.out.println("开始扫描包：" + packageName);
+        URL url = this.getClass().getClassLoader().getResource(packageName.replaceAll("\\.", "/"));
+        File classPath = new File(url.getFile());
+        for (File file : classPath.listFiles()) {
+            if (file.isDirectory()) {
+                scannerClass(packageName + "." +file.getName());
+            } else {
+                System.out.println("扫描到：" + file.getName());
+                classNames.add(packageName + "." + file.getName().replace(".class", ""));
+            }
+        }
+    }
+
+    /**
+     * 完成注册
+     */
+    private void doRegister() {
+        System.out.println("开始注册");
+        if (classNames.isEmpty()) {return ;}
+        for (String className : classNames) {
+            try {
+                Class<?> clazz = Class.forName(className);
+                Class<?> i = clazz.getInterfaces()[0];
+                registryMap.put(i.getName(), clazz.newInstance());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -13,10 +13,10 @@ public class RpcConsumer {
         System.out.println(rpcHello.hello("ABCD"));
 
         RpcService service = RpcProxy.create(RpcService.class);
-        System.out.println("8 + 2" + service.add(8,2));
-        System.out.println("8 - 2" + service.sub(8,2));
-        System.out.println("8 * 2" + service.mult(8,2));
-        System.out.println("8 / 2" + service.div(8,2));
+        System.out.println("8 + 2 = " + service.add(8,2));
+        System.out.println("8 - 2 = " + service.sub(8,2));
+        System.out.println("8 * 2 = " + service.mult(8,2));
+        System.out.println("8 / 2 = " + service.div(8,2));
 
 
     }

@@ -5,7 +5,7 @@ import com.lancq.netty.rpc.api.RpcHelloService;
 /**
  * @author lancq
  */
-public class PrcHelloServiceImpl implements RpcHelloService {
+public class RpcHelloServiceImpl implements RpcHelloService {
     @Override
     public String hello(String name) {
         return "Hello " + name;

@@ -38,9 +38,9 @@ public class RpcProxy {
 
 
     private static class MethodProxy implements InvocationHandler {
-        private Class clazz;
+        private Class<?> clazz;
 
-        public MethodProxy(Class clazz) {
+        public MethodProxy(Class<?> clazz) {
             this.clazz = clazz;
         }
         @Override
@@ -93,6 +93,7 @@ public class RpcProxy {
                     }
                 });
                 ChannelFuture f = b.connect("localhost", 8080).sync();
+                System.out.println("连接到服务 ：localhost:" + 8080 );
                 f.channel().writeAndFlush(msg).sync();
                 f.channel().closeFuture().sync();
             } catch (Exception e) {

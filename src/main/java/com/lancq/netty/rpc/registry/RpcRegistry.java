@@ -46,7 +46,7 @@ public class RpcRegistry {
                             pipeline.addLast(new LengthFieldPrepender(4));
                             //实参处理
                             pipeline.addLast("encoder", new ObjectEncoder());
-                            pipeline.addLast("decoder", new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(InvokerProtocol.class.getClassLoader())));
+                            pipeline.addLast("decoder", new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(null)));
 
                             //前面的编解码，就是对数据的解析
                             //最后一步，执行属于自己的逻辑
@@ -61,6 +61,7 @@ public class RpcRegistry {
             ChannelFuture sync = server.bind(this.port).sync();
             System.out.println("Rpc Registry start listen at " + port);
         } catch (Exception e) {
+            e.printStackTrace();
             bossGroup.shutdownGracefully();
             workGroup.shutdownGracefully();
         }
